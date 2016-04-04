@@ -1,0 +1,63 @@
+server {
+  server_name default-centos-70;
+  listen <%= node['conf_services']['site_port'] %>;
+
+  ssl on;
+  ssl_certificate /etc/pki/tls/certs/pypiserver.pem.chained.pem;
+  ssl_certificate_key /etc/pki/tls/private/pypiserver.key;
+
+  ssl_prefer_server_ciphers on;
+   ## Enable this if your want HSTS (recommended)
+   ##  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+   ##
+   ##   ssl_stapling on;
+   ##      ssl_stapling_verify on;
+   ##        resolver 8.8.8.8;
+
+  location /pypi/ {
+    auth_basic "Private part";
+    auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    add_header Pragma "no-cache";
+    rewrite /pypi/(.*) /$1  break;
+    proxy_pass http://<%= node['conf_services']['pypi_address'] %>:<%= node['conf_services']['pypi_port'] %>;
+  }
+  location /simple/ {
+    auth_basic "Private part";
+    auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass http://<%= node['conf_services']['pypi_address'] %>:<%= node['conf_services']['pypi_port'] %>;
+  }
+  location /packages/ {
+    auth_basic "Private part";
+    auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass http://<%= node['conf_services']['pypi_address'] %>:<%= node['conf_services']['pypi_port'] %>;
+  }
+#Chef-server
+  location / {
+    auth_basic "Private part";
+    auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass https://localhost:<%= node['conf_services']['chef_port'] %>;
+  }
+
+
+  location /static/ {
+    root <%= node['conf_services']['static_directory']%>/static;
+    auth_basic "Private part";
+    auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
+  }
+}
