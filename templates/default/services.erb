@@ -56,7 +56,7 @@ server {
 
 
   location /static/ {
-    root <%= node['conf_services']['static_directory']%>/static;
+    root <%= node['conf_services']['static_nginx_directory']%>;
     auth_basic "Private part";
     auth_basic_user_file <%= node['conf_services']['htpassword_directory'] %>;
   }

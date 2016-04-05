@@ -1,5 +1,5 @@
 
-directory "#{node['conf_services']['directory_for_static']}/static" do
+directory "#{node['conf_services']['static_nginx_directory']}/static" do
   owner node['nginx']['user']
   group node['nginx']['group']
   mode '0755'
